@@ -15,73 +15,198 @@
  */
 
 import type { TablePaginationProps } from '../../TablePagination/types';
+import type { SortDescriptor } from 'react-stately';
+import type { TableItem, TableProps } from '../types';
+
+// Legacy useTable hooks types
 
 /** @public */
 export interface UseTablePaginationConfig {
-  /** Total number of rows in the dataset - only needed when data is not provided at the top level */
   rowCount?: number;
-
-  // Controlled pagination with offset/pageSize (Backstage style)
-  /** Current offset. When provided, pagination is controlled */
   offset?: number;
-  /** Current page size. When provided, pagination is controlled */
   pageSize?: number;
-  /** Callback when offset changes */
   onOffsetChange?: (offset: number) => void;
-  /** Callback when page size changes */
   onPageSizeChange?: (pageSize: number) => void;
-
-  // Uncontrolled pagination defaults
-  /** Default page size for uncontrolled mode */
   defaultPageSize?: number;
-  /** Default offset for uncontrolled mode */
   defaultOffset?: number;
-
-  // Analytics callbacks
-  /** Callback when next page is clicked */
   onNextPage?: () => void;
-  /** Callback when previous page is clicked */
   onPreviousPage?: () => void;
-
-  // UI options
-  /** Whether to show page size options */
   showPageSizeOptions?: boolean;
 }
 
 /** @public */
 export interface UseTablePagination<T = any> {
-  /** Props to pass to TablePagination component */
   paginationProps: TablePaginationProps;
-  /** Current offset */
   offset: number;
-  /** Current page size */
   pageSize: number;
-  /** Sliced data for current page - only available when data is provided to useTable */
   data?: T[];
-  /** Go to next page */
   nextPage: () => void;
-  /** Go to previous page */
   previousPage: () => void;
-  /** Set specific offset */
   setOffset: (offset: number) => void;
-  /** Set page size */
   setPageSize: (pageSize: number) => void;
 }
 
 /** @public */
 export interface UseTableConfig<T = any> {
-  /** Full dataset - when provided, rowCount is calculated automatically and sliced data is returned */
   data?: T[];
-  /** Pagination configuration */
   pagination?: UseTablePaginationConfig;
 }
 
 /** @public */
 export interface UseTableResult<T = any> {
-  /** Sliced data for current page */
   data?: T[];
-  /** Props to pass to TablePagination component */
   paginationProps: TablePaginationProps;
-  /** Pagination utilities */
   pagination: UseTablePagination<T>;
+}
+
+// =======
+
+/** @public */
+export interface FilterState<TFilter> {
+  value: TFilter | undefined;
+  onFilterChange: (filter: TFilter) => void;
+}
+
+/** @public */
+export interface SearchState {
+  value: string;
+  onSearchChange: (value: string) => void;
+}
+
+/** @public */
+export interface QueryOptions<TFilter> {
+  initialSort?: SortDescriptor;
+  sort?: SortDescriptor | null;
+  onSortChange?: (sort: SortDescriptor) => void;
+
+  initialFilter?: TFilter;
+  filter?: TFilter;
+  onFilterChange?: (filter: TFilter) => void;
+
+  initialSearch?: string;
+  search?: string;
+  onSearchChange?: (search: string) => void;
+}
+
+/** @public */
+export interface PaginationOptions {
+  pageSize?: number;
+  initialOffset?: number;
+  showPageSizeOptions?: boolean;
+  getLabel?: TablePaginationProps['getLabel'];
+}
+
+/** @public */
+export interface OffsetParams<TFilter> {
+  offset: number;
+  pageSize: number;
+  sort: SortDescriptor | null;
+  filter: TFilter | undefined;
+  search: string;
+  signal: AbortSignal;
+}
+
+/** @public */
+export interface CursorParams<TFilter> {
+  cursor: string | undefined;
+  pageSize: number;
+  sort: SortDescriptor | null;
+  filter: TFilter | undefined;
+  search: string;
+  signal: AbortSignal;
+}
+
+/** @public */
+export interface OffsetResponse<T> {
+  data: T[];
+  totalCount: number;
+}
+
+/** @public */
+export interface CursorResponse<T> {
+  data: T[];
+  nextCursor?: string;
+  prevCursor?: string;
+  totalCount?: number;
+}
+
+/** @public */
+export interface UseTableDataCompleteOptions<
+  T extends TableItem,
+  TFilter = unknown,
+> extends QueryOptions<TFilter> {
+  mode: 'complete';
+  getData: () => T[] | Promise<T[]>;
+  paginationOptions?: PaginationOptions;
+  sortFn?: (data: T[], sort: SortDescriptor) => T[];
+  filterFn?: (data: T[], filter: TFilter) => T[];
+  searchFn?: (data: T[], search: string) => T[];
+}
+
+/** @public */
+export interface UseTableDataOffsetOptions<
+  T extends TableItem,
+  TFilter = unknown,
+> extends QueryOptions<TFilter> {
+  mode: 'offset';
+  getData: (params: OffsetParams<TFilter>) => Promise<OffsetResponse<T>>;
+  paginationOptions?: PaginationOptions;
+}
+
+/** @public */
+export interface UseTableDataCursorOptions<
+  T extends TableItem,
+  TFilter = unknown,
+> extends QueryOptions<TFilter> {
+  mode: 'cursor';
+  getData: (params: CursorParams<TFilter>) => Promise<CursorResponse<T>>;
+  paginationOptions?: Omit<PaginationOptions, 'initialOffset'>;
+}
+
+/** @public */
+export type UseTableDataOptions<T extends TableItem, TFilter = unknown> =
+  | UseTableDataCompleteOptions<T, TFilter>
+  | UseTableDataOffsetOptions<T, TFilter>
+  | UseTableDataCursorOptions<T, TFilter>;
+
+/** @public */
+export interface UseTableDataResult<T extends TableItem, TFilter = unknown> {
+  tableProps: Omit<
+    TableProps<T>,
+    | 'columnConfig'
+    | 'rowConfig'
+    | 'rowHeaderColumn'
+    | 'selection'
+    | 'emptyState'
+  >;
+  reload: () => void;
+  filter: FilterState<TFilter>;
+  search: SearchState;
+}
+
+/** @internal */
+export interface PaginationResult<T> {
+  data: T[] | undefined;
+  loading: boolean;
+  error: Error | undefined;
+  totalCount: number | undefined;
+  offset?: number;
+  pageSize: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+  onNextPage: () => void;
+  onPreviousPage: () => void;
+  onPageSizeChange: (size: number) => void;
+}
+
+/** @internal */
+export interface QueryState<TFilter> {
+  sort: SortDescriptor | null;
+  setSort: (sort: SortDescriptor) => void;
+
+  filter: TFilter | undefined;
+  setFilter: (filter: TFilter) => void;
+
+  search: string;
+  setSearch: (search: string) => void;
 }

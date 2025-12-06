@@ -26,6 +26,7 @@ import type {
  * Hook for managing table state including pagination and future features like sorting.
  * Supports both controlled and uncontrolled modes using offset/pageSize pattern (Backstage style).
  *
+ * @deprecated Use useTableData instead.
  * @public
  */
 export function useTable<T = any>(
@@ -116,21 +117,21 @@ export function useTable<T = any>(
     () => ({
       offset: currentOffset,
       pageSize: currentPageSize,
-      rowCount,
-      setOffset,
-      setPageSize,
-      onNextPage,
-      onPreviousPage,
+      totalCount: rowCount,
+      hasNextPage: currentOffset + currentPageSize < rowCount,
+      hasPreviousPage: currentOffset > 0,
+      onNextPage: nextPage,
+      onPreviousPage: previousPage,
+      onPageSizeChange: setPageSize,
       showPageSizeOptions,
     }),
     [
       currentOffset,
       currentPageSize,
       rowCount,
-      setOffset,
+      nextPage,
+      previousPage,
       setPageSize,
-      onNextPage,
-      onPreviousPage,
       showPageSizeOptions,
     ],
   );

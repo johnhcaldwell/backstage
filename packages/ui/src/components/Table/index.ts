@@ -15,6 +15,7 @@
  */
 
 export { Table } from './components/Table';
+export { TableRoot } from './components/TableRoot';
 export { TableHeader } from './components/TableHeader';
 export { TableBody } from './components/TableBody';
 export { Column } from './components/Column';
@@ -23,18 +24,43 @@ export { Cell } from './components/Cell';
 export { CellText } from './components/CellText';
 export { CellProfile } from './components/CellProfile';
 export { useTable } from './hooks/useTable';
+export { useTableData } from './hooks/useTableData';
 
 export type {
   CellProps,
   CellTextProps,
   CellProfileProps,
   ColumnProps,
+  TableProps,
+  TableItem,
+  ColumnConfig,
+  RowConfig,
+  RowRenderFn,
+  TableSelection,
+  SortState,
+  NoPagination,
+  PagePagination,
+  TablePaginationType,
 } from './types';
 export type {
   UseTableConfig,
   UseTableResult,
   UseTablePagination,
   UseTablePaginationConfig,
+  UseTableDataOptions,
+  UseTableDataResult,
+  UseTableDataCompleteOptions,
+  UseTableDataOffsetOptions,
+  UseTableDataCursorOptions,
+  OffsetParams,
+  OffsetResponse,
+  CursorParams,
+  CursorResponse,
+  FilterState,
+  SearchState,
+  QueryOptions,
+  PaginationOptions,
 } from './hooks/types';
+export type { SortDescriptor } from 'react-stately';
 
 export { TableDefinition } from './definition';
